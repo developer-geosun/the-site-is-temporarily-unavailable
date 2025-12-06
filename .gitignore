@@ -1,0 +1,33 @@
+# Системні файли
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Файли IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Тимчасові файли
+*.tmp
+*.log
+*.cache
+
+# Файли інструкцій та промптів (за потреби)
+# Розкоментуйте наступний рядок, якщо хочете виключити файли з інструкціями
+*.txt
+# 2025-12-06 prompt.txt
+
+# Node modules (якщо в майбутньому додасте npm пакети)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Збірка (якщо додасте build tools)
+dist/
+build/
+*.min.js
+*.min.css
+
