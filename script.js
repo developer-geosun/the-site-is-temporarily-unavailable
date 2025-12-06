@@ -2,6 +2,10 @@
 const SHEET_ID = '1vycGvADK5hFhV2jiqxhtTEeKW_HTwlTEFvVtjkZ3kaE';
 const SHEET_NAME = 'Ref_border_crosing_of_Ukraine';
 const COLUMN_NAME = 'ukraine_and_country';
+const BORDER_SHEET_NAME = 'Border'; // Назва аркуша для збереження виборів
+
+// URL Google Apps Script Web App для збереження даних
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxLEkOM3CzZi5Ca6NGiHoJDVXunGWdZ0JSQAi5hIFAeQ4t0rWe4FgXIlIaaHiqFtvWu/exec';
 
 // Функція для парсингу CSV (покращена версія)
 function parseCSV(csvText) {
@@ -241,6 +245,19 @@ async function loadDataFromGoogleSheets() {
     }
 }
 
+// GID аркуша "Ref_border_crosing_of_Ukraine"
+const SHEET_GID = '1789958792';
+
+// Функція для відкриття таблиці на конкретному аркуші
+function openSheetWithTab(event) {
+    event.preventDefault();
+    
+    // Використовуємо GID для відкриття конкретного аркуша
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit#gid=${SHEET_GID}`;
+    
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 // Функція для заповнення випадаючого списку
 function populateSelect(uniqueValues) {
     const selectElement = document.getElementById('borderSelect');
@@ -310,7 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Обробка вибору
-    selectElement.addEventListener('change', (e) => {
+    selectElement.addEventListener('change', async (e) => {
         const value = e.target.value;
         if (value) {
             selectedText.textContent = value;
@@ -319,7 +336,76 @@ document.addEventListener('DOMContentLoaded', async () => {
             setTimeout(() => {
                 resultCard.classList.remove('translate-y-2', 'opacity-0');
             }, 10);
+            
+            // Зберігаємо вибраний напрямок в Google Sheets
+            await saveSelectedDirection(value);
         }
     });
 });
+
+// Функція для збереження вибраного напрямку в Google Sheets
+async function saveSelectedDirection(direction) {
+    // Перевіряємо, чи налаштовано URL Web App
+    if (!WEB_APP_URL || WEB_APP_URL.trim() === '') {
+        console.warn('Web App URL не налаштовано. Пропускаємо збереження.');
+        return;
+    }
+    
+    try {
+        // Показуємо індикатор збереження
+        const resultCard = document.getElementById('resultCard');
+        const selectedText = document.getElementById('selectedText');
+        const originalText = selectedText.textContent;
+        selectedText.textContent = `${originalText} (збереження...)`;
+        
+        // Використовуємо GET запит з URL параметрами (найнадійніший метод для Google Apps Script)
+        const params = new URLSearchParams();
+        params.append('direction', direction);
+        params.append('timestamp', new Date().toISOString());
+        
+        const urlWithParams = `${WEB_APP_URL}?${params.toString()}`;
+        
+        // Використовуємо fetch з CORS для отримання відповіді
+        const response = await fetch(urlWithParams, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP помилка: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Показуємо успішне збереження
+            selectedText.textContent = `${originalText} ✓`;
+            selectedText.classList.add('text-green-600');
+            
+            // Прибираємо галочку через 2 секунди
+            setTimeout(() => {
+                selectedText.textContent = originalText;
+                selectedText.classList.remove('text-green-600');
+            }, 2000);
+        } else {
+            throw new Error(result.error || 'Помилка збереження');
+        }
+        
+    } catch (error) {
+        console.error('Помилка збереження напрямку:', error);
+        
+        // Показуємо помилку
+        const selectedText = document.getElementById('selectedText');
+        const originalText = selectedText.textContent.replace(/\s*\(збереження\.\.\.\)|\s*✓/g, '');
+        selectedText.textContent = `${originalText} (помилка збереження)`;
+        selectedText.classList.add('text-red-600');
+        
+        // Прибираємо повідомлення про помилку через 3 секунди
+        setTimeout(() => {
+            selectedText.textContent = originalText;
+            selectedText.classList.remove('text-red-600');
+        }, 3000);
+    }
+}
 
