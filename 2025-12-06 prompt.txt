@@ -1,0 +1,21 @@
+посилання на Google Sheet
+https://docs.google.com/spreadsheets/d/1vycGvADK5hFhV2jiqxhtTEeKW_HTwlTEFvVtjkZ3kaE/edit?usp=sharing
+
+таблиця Test
+
+аркуш Ref_border_crosing_of_Ukraine
+
+назва стовпчика         опис
+
+name_out		        назва міста виїзду з України
+name_in			        назва міста ввїзду до країни
+country			        назва країни, сусіда України
+name_out_and_name_in	обчислювальне поле яке містить дані міста виїзду - та вїзду
+ukraine_and_country	    назва кордону, Україна / країна
+
+аркуш Border
+
+назва стовпчика         опис
+
+date                    дата запису
+Border                  назва кордону
